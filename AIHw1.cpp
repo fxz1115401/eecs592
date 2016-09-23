@@ -62,6 +62,8 @@ void find_frontier_s(int** record,char** map,node* now, stack<node*>& frontier,i
      			temp->path_cost=now->path_cost+1;
      		else if (now->contains=='*')
      			temp->path_cost=now->path_cost+3;
+     		else
+     			         	     	     			temp->path_cost=now->path_cost;
      		}
      	}
 
@@ -85,6 +87,8 @@ void find_frontier_s(int** record,char** map,node* now, stack<node*>& frontier,i
      	     			temp->path_cost=now->path_cost+1;
      	     		else if (now->contains=='*')
      	     			temp->path_cost=now->path_cost+3;
+     	     		else
+     	     			         	     	     			temp->path_cost=now->path_cost;
      	     		}
      	     	}
 
@@ -108,6 +112,8 @@ void find_frontier_s(int** record,char** map,node* now, stack<node*>& frontier,i
      	     	     			temp->path_cost=now->path_cost+1;
      	     	     		else if (now->contains=='*')
      	     	     			temp->path_cost=now->path_cost+3;
+     	     	     		else
+     	     	     			         	     	     			temp->path_cost=now->path_cost;
      	     	     		}
      	     	     	}
 
@@ -131,106 +137,14 @@ void find_frontier_s(int** record,char** map,node* now, stack<node*>& frontier,i
          	     	     			temp->path_cost=now->path_cost+1;
          	     	     		else if (now->contains=='*')
          	     	     			temp->path_cost=now->path_cost+3;
+         	     	     		else
+         	     	     			         	     	     			temp->path_cost=now->path_cost;
          	     	     		}
          	     	     	}
 
 
 }
 
-void find_frontier_q(int** record,char** map,node* now, queue<node*>& frontier,int map_row, int map_col)
-{
-
-	if(now->row==0){
-	     	     		now->north=NULL;
-	     	     	}
-	    	else{
-	         	     	     		now->north=new node();
-	         	     	     		node* temp=now->north;
-	         	     	     		temp->contains=map[now->row-1][now->col];
-	         	     	     		temp->row=now->row-1;
-	         	     	     		temp->col=now->col;
-	         	     	     		if (temp->contains!='X'&&temp->contains!='O'&&record[temp->row][temp->col]==0)
-	         	     	     		{frontier.push(temp);
-	         	     	     		record[temp->row][temp->col]=1;
-	         	     	     		temp->path=now->path;
-	         	     	     		temp->path.push_back('N');
-	         	     	     		temp->path_length=now->path_length+1;
-	         	     	     		if(now->contains==' ')
-	         	     	     			temp->path_cost=now->path_cost+1;
-	         	     	     		else if (now->contains=='*')
-	         	     	     			temp->path_cost=now->path_cost+3;
-	         	     	     		}
-	         	     	     	}
-
- 	if(now->col==0){
- 	     	     		now->west=NULL;
- 	     	     	}
- 	     	     	else{
- 	     	     		now->west=new node();
- 	     	     		node* temp=now->west;
- 	     	     		temp->contains=map[now->row][now->col-1];
- 	     	     		temp->row=now->row;
- 	     	     		temp->col=now->col-1;
- 	     	     		if (temp->contains!='X'&&temp->contains!='O'&&record[temp->row][temp->col]==0)
- 	     	     		{frontier.push(temp);
- 	     	     		record[temp->row][temp->col]=1;
- 	     	     		temp->path=now->path;
- 	     	     		temp->path.push_back('W');
- 	     	     		temp->path_length=now->path_length+1;
- 	     	     		if(now->contains==' ')
- 	     	     			temp->path_cost=now->path_cost+1;
- 	     	     		else if (now->contains=='*')
- 	     	     			temp->path_cost=now->path_cost+3;
- 	     	     		}
- 	     	     	}
-
-
- 	if(now->col==map_col){
- 	     		now->east=NULL;
- 	     	}
- 	     	else{
- 	     		now->east=new node();
- 	     		node* temp=now->east;
- 	     		temp->contains=map[now->row][now->col+1];
- 	     		temp->row=now->row;
- 	     		temp->col=now->col+1;
- 	     		if (temp->contains!='X'&&temp->contains!='O'&&record[temp->row][temp->col]==0)
- 	     		{frontier.push(temp);
- 	     		record[temp->row][temp->col]=1;
- 	     		temp->path=now->path;
- 	     		temp->path.push_back('E');
- 	     		temp->path_length=now->path_length+1;
- 	     		if(now->contains==' ')
- 	     			temp->path_cost=now->path_cost+1;
- 	     		else if (now->contains=='*')
- 	     			temp->path_cost=now->path_cost+3;
- 	     		}
- 	     	}
-
-
-
- 	if(now->row==map_row){
- 		now->south=NULL;
- 	}
- 	else{
- 		now->south=new node();
- 		node* temp=now->south;
- 		temp->contains=map[now->row+1][now->col];
- 		temp->row=now->row+1;
- 		temp->col=now->col;
- 		if (temp->contains!='X'&&temp->contains!='O'&&record[temp->row][temp->col]==0)
- 		{frontier.push(temp);
- 		record[temp->row][temp->col]=1;
- 		temp->path=now->path;
- 		temp->path.push_back('S');
- 		temp->path_length=now->path_length+1;
- 		if(now->contains==' ')
- 			temp->path_cost=now->path_cost+1;
- 		else if (now->contains=='*')
- 			temp->path_cost=now->path_cost+3;
- 		}
- 	}
-}
 
 
 vector<char> depth_search(char** map,int& num_nodes,int S_row,int S_col,int map_row,int map_col)
@@ -272,8 +186,8 @@ vector<char> depth_search(char** map,int& num_nodes,int S_row,int S_col,int map_
 
     	if (now->contains=='G')
     	{
-             cout<<"Yeah"<<endl;
-
+    		cout<<'\n';
+    		cout<<"Depth First Search: "<<endl;
              printInfo(now,num_nodes);
              for (int i = 0; i < map_row ; ++i){
     	    delete [] record[i];
@@ -293,6 +207,111 @@ vector<char> depth_search(char** map,int& num_nodes,int S_row,int S_col,int map_
 
     return path;
 };
+
+
+void find_frontier_q(int** record,char** map,node* now, queue<node*>& frontier,int map_row, int map_col)
+{
+
+	if(now->row==0){
+	     	     		now->north=NULL;
+	     	     	}
+	    	else{
+	         	     	     		now->north=new node();
+	         	     	     		node* temp=now->north;
+	         	     	     		temp->contains=map[now->row-1][now->col];
+	         	     	     		temp->row=now->row-1;
+	         	     	     		temp->col=now->col;
+	         	     	     		if (temp->contains!='X'&&temp->contains!='O'&&record[temp->row][temp->col]==0)
+	         	     	     		{frontier.push(temp);
+	         	     	     		record[temp->row][temp->col]=1;
+	         	     	     		temp->path=now->path;
+	         	     	     		temp->path.push_back('N');
+	         	     	     		temp->path_length=now->path_length+1;
+	         	     	     		if(now->contains==' ')
+	         	     	     			temp->path_cost=now->path_cost+1;
+	         	     	     		else if (now->contains=='*')
+	         	     	     			temp->path_cost=now->path_cost+3;
+	         	     	     		else
+	         	     	     			temp->path_cost=now->path_cost;
+
+	         	     	     		}
+	         	     	     	}
+
+ 	if(now->col==0){
+ 	     	     		now->west=NULL;
+ 	     	     	}
+ 	     	     	else{
+ 	     	     		now->west=new node();
+ 	     	     		node* temp=now->west;
+ 	     	     		temp->contains=map[now->row][now->col-1];
+ 	     	     		temp->row=now->row;
+ 	     	     		temp->col=now->col-1;
+ 	     	     		if (temp->contains!='X'&&temp->contains!='O'&&record[temp->row][temp->col]==0)
+ 	     	     		{frontier.push(temp);
+ 	     	     		record[temp->row][temp->col]=1;
+ 	     	     		temp->path=now->path;
+ 	     	     		temp->path.push_back('W');
+ 	     	     		temp->path_length=now->path_length+1;
+ 	     	     		if(now->contains==' ')
+ 	     	     			temp->path_cost=now->path_cost+1;
+ 	     	     		else if (now->contains=='*')
+ 	     	     			temp->path_cost=now->path_cost+3;
+ 	     	     		else
+ 	     	     			         	     	     			temp->path_cost=now->path_cost;
+ 	     	     		}
+ 	     	     	}
+
+
+ 	if(now->col==map_col){
+ 	     		now->east=NULL;
+ 	     	}
+ 	     	else{
+ 	     		now->east=new node();
+ 	     		node* temp=now->east;
+ 	     		temp->contains=map[now->row][now->col+1];
+ 	     		temp->row=now->row;
+ 	     		temp->col=now->col+1;
+ 	     		if (temp->contains!='X'&&temp->contains!='O'&&record[temp->row][temp->col]==0)
+ 	     		{frontier.push(temp);
+ 	     		record[temp->row][temp->col]=1;
+ 	     		temp->path=now->path;
+ 	     		temp->path.push_back('E');
+ 	     		temp->path_length=now->path_length+1;
+ 	     		if(now->contains==' ')
+ 	     			temp->path_cost=now->path_cost+1;
+ 	     		else if (now->contains=='*')
+ 	     			temp->path_cost=now->path_cost+3;
+ 	     		else
+ 	     			         	     	     			temp->path_cost=now->path_cost;
+ 	     		}
+ 	     	}
+
+
+
+ 	if(now->row==map_row){
+ 		now->south=NULL;
+ 	}
+ 	else{
+ 		now->south=new node();
+ 		node* temp=now->south;
+ 		temp->contains=map[now->row+1][now->col];
+ 		temp->row=now->row+1;
+ 		temp->col=now->col;
+ 		if (temp->contains!='X'&&temp->contains!='O'&&record[temp->row][temp->col]==0)
+ 		{frontier.push(temp);
+ 		record[temp->row][temp->col]=1;
+ 		temp->path=now->path;
+ 		temp->path.push_back('S');
+ 		temp->path_length=now->path_length+1;
+ 		if(now->contains==' ')
+ 			temp->path_cost=now->path_cost+1;
+ 		else if (now->contains=='*')
+ 			temp->path_cost=now->path_cost+3;
+ 		else
+ 			         	     	     			temp->path_cost=now->path_cost;
+ 		}
+ 	}
+}
 
 
 vector<char> breath_search(char** map,int& num_nodes,int S_row,int S_col,int map_row,int map_col)
@@ -334,7 +353,8 @@ vector<char> breath_search(char** map,int& num_nodes,int S_row,int S_col,int map
 
     	if (now->contains=='G')
     	{
-    		cout<<"Yeah"<<endl;
+    		cout<<'\n';
+    		cout<<"Breath First Search: "<<endl;
     		printInfo(now,num_nodes);
 
              for (int i = 0; i < map_row ; ++i){
@@ -356,6 +376,185 @@ vector<char> breath_search(char** map,int& num_nodes,int S_row,int S_col,int map
     return path;
 };
 
+void find_frontier_v(int** record,char** map,node* now, vector<node*>& frontier,int map_row, int map_col)
+{
+
+	if(now->row==0){
+	     	     		now->north=NULL;
+	     	     	}
+	    	else{
+	         	     	     		now->north=new node();
+	         	     	     		node* temp=now->north;
+	         	     	     		temp->contains=map[now->row-1][now->col];
+	         	     	     		temp->row=now->row-1;
+	         	     	     		temp->col=now->col;
+	         	     	     		if (temp->contains!='X'&&temp->contains!='O'&&record[temp->row][temp->col]==0)
+	         	     	     		{frontier.push_back(temp);
+	         	     	     		record[temp->row][temp->col]=1;
+	         	     	     		temp->path=now->path;
+	         	     	     		temp->path.push_back('N');
+	         	     	     		temp->path_length=now->path_length+1;
+	         	     	     		if(now->contains==' ')
+	         	     	     			temp->path_cost=now->path_cost+1;
+	         	     	     		else if (now->contains=='*')
+	         	     	     			temp->path_cost=now->path_cost+3;
+	         	     	     		else
+	         	     	     			         	     	     			temp->path_cost=now->path_cost;
+	         	     	     		}
+	         	     	     	}
+
+ 	if(now->col==0){
+ 	     	     		now->west=NULL;
+ 	     	     	}
+ 	     	     	else{
+ 	     	     		now->west=new node();
+ 	     	     		node* temp=now->west;
+ 	     	     		temp->contains=map[now->row][now->col-1];
+ 	     	     		temp->row=now->row;
+ 	     	     		temp->col=now->col-1;
+ 	     	     		if (temp->contains!='X'&&temp->contains!='O'&&record[temp->row][temp->col]==0)
+ 	     	     		{frontier.push_back(temp);
+ 	     	     		record[temp->row][temp->col]=1;
+ 	     	     		temp->path=now->path;
+ 	     	     		temp->path.push_back('W');
+ 	     	     		temp->path_length=now->path_length+1;
+ 	     	     		if(now->contains==' ')
+ 	     	     			temp->path_cost=now->path_cost+1;
+ 	     	     		else if (now->contains=='*')
+ 	     	     			temp->path_cost=now->path_cost+3;
+ 	     	     		else
+ 	     	     			         	     	     			temp->path_cost=now->path_cost;
+ 	     	     		}
+ 	     	     	}
+
+
+ 	if(now->col==map_col){
+ 	     		now->east=NULL;
+ 	     	}
+ 	     	else{
+ 	     		now->east=new node();
+ 	     		node* temp=now->east;
+ 	     		temp->contains=map[now->row][now->col+1];
+ 	     		temp->row=now->row;
+ 	     		temp->col=now->col+1;
+ 	     		if (temp->contains!='X'&&temp->contains!='O'&&record[temp->row][temp->col]==0)
+ 	     		{frontier.push_back(temp);
+ 	     		record[temp->row][temp->col]=1;
+ 	     		temp->path=now->path;
+ 	     		temp->path.push_back('E');
+ 	     		temp->path_length=now->path_length+1;
+ 	     		if(now->contains==' ')
+ 	     			temp->path_cost=now->path_cost+1;
+ 	     		else if (now->contains=='*')
+ 	     			temp->path_cost=now->path_cost+3;
+ 	     		else
+ 	     			         	     	     			temp->path_cost=now->path_cost;
+ 	     		}
+ 	     	}
+
+
+
+ 	if(now->row==map_row){
+ 		now->south=NULL;
+ 	}
+ 	else{
+ 		now->south=new node();
+ 		node* temp=now->south;
+ 		temp->contains=map[now->row+1][now->col];
+ 		temp->row=now->row+1;
+ 		temp->col=now->col;
+ 		if (temp->contains!='X'&&temp->contains!='O'&&record[temp->row][temp->col]==0)
+ 		{frontier.push_back(temp);
+ 		record[temp->row][temp->col]=1;
+ 		temp->path=now->path;
+ 		temp->path.push_back('S');
+ 		temp->path_length=now->path_length+1;
+ 		if(now->contains==' ')
+ 			temp->path_cost=now->path_cost+1;
+ 		else if (now->contains=='*')
+ 			temp->path_cost=now->path_cost+3;
+ 		else
+ 			         	     	     			temp->path_cost=now->path_cost;
+ 		}
+ 	}
+}
+
+
+int minimum_cost(vector<node*> frontier){
+	int min_cost=frontier[0]->path_cost;
+	int min_index=0;
+	for (int i=0;i<frontier.size();i++){
+           if (frontier[i]->path_cost<min_cost)
+           {
+        	   min_cost=frontier[i]->path_cost;
+        	   min_index=i;
+           }
+	}
+	return min_index;
+
+}
+
+
+vector<char> uniform_search(char** map,int& num_nodes,int S_row,int S_col,int map_row,int map_col)
+{
+	int** record = new int*[map_row];
+		for(int i = 0; i < map_row; ++i)
+			record[i] = new int[map_col];
+	        for(int i=0;i<map_row;i++){
+	        	for(int j=0;j<map_col;j++){
+	        		record[i][j]=0;
+	        	}
+	        }
+	vector<char> path;
+	node* start=new node();
+	start->contains=map[S_row][S_col];
+    start->row=S_row;
+    start->col=S_col;
+    record[S_row][S_col]=1;
+    start->path_cost=1;
+    start->path_length=0;
+    vector<node*> frontier;
+
+    find_frontier_v(record,map,start, frontier, map_row,  map_col);
+    //frontier.pop();
+
+    bool stop=false;
+    node* now=start;
+    int i=0;
+    while(stop==false){
+    	i++;
+
+
+    	if (frontier.empty())
+    	{
+    		cout<<"OH NO";
+    		return path;
+    	}
+
+
+    	if (now->contains=='G')
+    	{
+    		cout<<'\n';
+    		cout<<"Uniform Cost Search: "<<endl;
+    		printInfo(now,num_nodes);
+
+             for (int i = 0; i < map_row ; ++i){
+    	    delete [] record[i];
+    	}
+    	delete[] record;
+  	         return now->path;
+    	}
+
+    	int min=minimum_cost(frontier);
+    	now=frontier[min];
+        frontier.erase (frontier.begin()+min);
+     	find_frontier_v(record,map,now, frontier, map_row,  map_col);
+    	num_nodes++;
+    }
+
+
+    return path;
+};
 
 int main() {
 
@@ -397,7 +596,9 @@ int main() {
 	/*********DBreath first search**********/
 	num_nodes=1;
 	vector<char> path_breath=breath_search(map,num_nodes,S_row,S_col,rows,columns);
-
+	/****************Uniform cost search*********************/
+	num_nodes=1;
+	vector<char> path_uniform=uniform_search(map,num_nodes,S_row,S_col,rows,columns);
 	/****delete the dynamic variables****/
 	for (int i = 0; i < rows ; ++i){
 	    delete [] map[i];
