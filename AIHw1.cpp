@@ -359,35 +359,18 @@ vector<char> breath_search(char** map, int& num_nodes, int S_row, int S_col,
 
 	return path;
 }
-;
 
-void find_frontier_v(int** record, char** map, node* now,
-		vector<node*>& frontier, int map_row, int map_col) {
-
-	if (now->row == 0) {
-		now->north = NULL;
-	} else {
-		now->north = new node();
-		node* temp = now->north;
-		temp->contains = map[now->row - 1][now->col];
-		temp->row = now->row - 1;
-		temp->col = now->col;
-		if (temp->contains != 'X' && temp->contains != 'O'
-				&& record[temp->row][temp->col] == 0) {
-			frontier.push_back(temp);
-			record[temp->row][temp->col] = 1;
-			temp->path = now->path;
-			temp->path.push_back('N');
-			temp->path_length = now->path_length + 1;
-			if (now->contains == ' ')
-				temp->path_cost = now->path_cost + 1;
-			else if (now->contains == '*')
-				temp->path_cost = now->path_cost + 3;
-			else
-				temp->path_cost = now->path_cost;
-		}
+int same_r_c(vector<node*>& frontier, int row, int col) {
+	int index = -1;
+	for (int i = 0; i < frontier.size(); i++) {
+		if (frontier[i]->row == row && frontier[i]->col == col)
+			index = i;
 	}
+	return index;
+}
 
+void find_frontier_v(int** record, int** cost, char** map, node* now,
+		vector<node*>& frontier, int map_row, int map_col) {
 	if (now->col == 0) {
 		now->west = NULL;
 	} else {
@@ -396,22 +379,71 @@ void find_frontier_v(int** record, char** map, node* now,
 		temp->contains = map[now->row][now->col - 1];
 		temp->row = now->row;
 		temp->col = now->col - 1;
+		temp->path = now->path;
+		temp->path.push_back('W');
+		temp->path_length = now->path_length + 1;
+
+		if (now->contains == ' ')
+			temp->path_cost = now->path_cost + 1;
+		else if (now->contains == '*')
+			temp->path_cost = now->path_cost + 3;
+		else
+			temp->path_cost = now->path_cost;
+
+
 		if (temp->contains != 'X' && temp->contains != 'O'
-				&& record[temp->row][temp->col] == 0) {
-			frontier.push_back(temp);
+				&& (record[temp->row][temp->col] == 0
+						|| temp->path_cost < cost[temp->row][temp->col])) {
+			if (record[temp->row][temp->col] == 0) {
+				frontier.push_back(temp);
+			} else if (temp->path_cost < cost[temp->row][temp->col]) {
+				int index = same_r_c(frontier, temp->row, temp->col);
+
+				frontier.erase(frontier.begin() + index);
+				frontier.push_back(temp);
+			}
+
+			cost[temp->row][temp->col] = temp->path_cost;
+
 			record[temp->row][temp->col] = 1;
-			temp->path = now->path;
-			temp->path.push_back('W');
-			temp->path_length = now->path_length + 1;
-			if (now->contains == ' ')
-				temp->path_cost = now->path_cost + 1;
-			else if (now->contains == '*')
-				temp->path_cost = now->path_cost + 3;
-			else
-				temp->path_cost = now->path_cost;
+
 		}
 	}
+	if (now->row == 0) {
+		now->north = NULL;
+	} else {
+		now->north = new node();
+		node* temp = now->north;
+		temp->contains = map[now->row - 1][now->col];
+		temp->row = now->row - 1;
+		temp->col = now->col;
+		temp->path = now->path;
+		temp->path.push_back('N');
+		temp->path_length = now->path_length + 1;
+		if (now->contains == ' ')
+			temp->path_cost = now->path_cost + 1;
+		else if (now->contains == '*')
+			temp->path_cost = now->path_cost + 3;
+		else
+			temp->path_cost = now->path_cost;
 
+		if (temp->contains != 'X' && temp->contains != 'O'
+				&& (record[temp->row][temp->col] == 0
+						|| temp->path_cost < cost[temp->row][temp->col])) {
+			if (record[temp->row][temp->col] == 0) {
+				frontier.push_back(temp);
+			} else if (temp->path_cost < cost[temp->row][temp->col]) {
+				int index = same_r_c(frontier, temp->row, temp->col);
+				frontier.erase(frontier.begin() + index);
+				frontier.push_back(temp);
+			}
+
+			cost[temp->row][temp->col] = temp->path_cost;
+
+			record[temp->row][temp->col] = 1;
+
+		}
+	}
 	if (now->col == map_col) {
 		now->east = NULL;
 	} else {
@@ -420,19 +452,31 @@ void find_frontier_v(int** record, char** map, node* now,
 		temp->contains = map[now->row][now->col + 1];
 		temp->row = now->row;
 		temp->col = now->col + 1;
+		temp->path = now->path;
+		temp->path.push_back('E');
+		temp->path_length = now->path_length + 1;
+		if (now->contains == ' ')
+			temp->path_cost = now->path_cost + 1;
+		else if (now->contains == '*')
+			temp->path_cost = now->path_cost + 3;
+		else
+			temp->path_cost = now->path_cost;
+
 		if (temp->contains != 'X' && temp->contains != 'O'
-				&& record[temp->row][temp->col] == 0) {
-			frontier.push_back(temp);
+				&& (record[temp->row][temp->col] == 0
+						|| temp->path_cost < cost[temp->row][temp->col])) {
+			if (record[temp->row][temp->col] == 0) {
+				frontier.push_back(temp);
+			} else if (temp->path_cost < cost[temp->row][temp->col]) {
+				int index = same_r_c(frontier, temp->row, temp->col);
+				frontier.erase(frontier.begin() + index);
+				frontier.push_back(temp);
+			}
+
+			cost[temp->row][temp->col] = temp->path_cost;
+
 			record[temp->row][temp->col] = 1;
-			temp->path = now->path;
-			temp->path.push_back('E');
-			temp->path_length = now->path_length + 1;
-			if (now->contains == ' ')
-				temp->path_cost = now->path_cost + 1;
-			else if (now->contains == '*')
-				temp->path_cost = now->path_cost + 3;
-			else
-				temp->path_cost = now->path_cost;
+
 		}
 	}
 
@@ -444,30 +488,61 @@ void find_frontier_v(int** record, char** map, node* now,
 		temp->contains = map[now->row + 1][now->col];
 		temp->row = now->row + 1;
 		temp->col = now->col;
+		temp->path = now->path;
+		temp->path.push_back('S');
+		temp->path_length = now->path_length + 1;
+		if (now->contains == ' ')
+			temp->path_cost = now->path_cost + 1;
+		else if (now->contains == '*')
+			temp->path_cost = now->path_cost + 3;
+		else
+			temp->path_cost = now->path_cost;
 		if (temp->contains != 'X' && temp->contains != 'O'
-				&& record[temp->row][temp->col] == 0) {
-			frontier.push_back(temp);
+				&& (record[temp->row][temp->col] == 0
+						|| temp->path_cost < cost[temp->row][temp->col])) {
+			if (record[temp->row][temp->col] == 0) {
+				frontier.push_back(temp);
+			} else if (temp->path_cost < cost[temp->row][temp->col]) {
+				int index = same_r_c(frontier, temp->row, temp->col);
+				frontier.erase(frontier.begin() + index);
+				frontier.push_back(temp);
+			}
+
+			cost[temp->row][temp->col] = temp->path_cost;
+
 			record[temp->row][temp->col] = 1;
-			temp->path = now->path;
-			temp->path.push_back('S');
-			temp->path_length = now->path_length + 1;
-			if (now->contains == ' ')
-				temp->path_cost = now->path_cost + 1;
-			else if (now->contains == '*')
-				temp->path_cost = now->path_cost + 3;
-			else
-				temp->path_cost = now->path_cost;
+
 		}
 	}
 }
-
 int minimum_cost(vector<node*> frontier) {
 	int min_cost = frontier[0]->path_cost;
 	int min_index = 0;
+	int min_index_row = frontier[0]->row;
+	int min_index_col = frontier[0]->col;
 	for (int i = 0; i < frontier.size(); i++) {
 		if (frontier[i]->path_cost < min_cost) {
 			min_cost = frontier[i]->path_cost;
 			min_index = i;
+			min_index_row = frontier[i]->row;
+			min_index_col = frontier[i]->col;
+
+		}
+
+		else if (frontier[i]->path_cost == min_cost) {
+			if (frontier[i]->row < min_index_row) {
+				min_cost = frontier[i]->path_cost;
+				min_index = i;
+				min_index_row = frontier[i]->row;
+				min_index_col = frontier[i]->col;
+			} else if (frontier[i]->row == min_index_row) {
+				if (frontier[i]->col < min_index_col) {
+					min_cost = frontier[i]->path_cost;
+					min_index = i;
+					min_index_row = frontier[i]->row;
+					min_index_col = frontier[i]->col;
+				}
+			}
 		}
 	}
 	return min_index;
@@ -476,6 +551,7 @@ int minimum_cost(vector<node*> frontier) {
 
 vector<char> uniform_search(char** map, int& num_nodes, int S_row, int S_col,
 		int map_row, int map_col, int& G_row, int& G_col) {
+
 	int** record = new int*[map_row];
 	for (int i = 0; i < map_row; ++i)
 		record[i] = new int[map_col];
@@ -484,18 +560,27 @@ vector<char> uniform_search(char** map, int& num_nodes, int S_row, int S_col,
 			record[i][j] = 0;
 		}
 	}
+	int** cost = new int*[map_row];
+	for (int i = 0; i < map_row; ++i)
+		cost[i] = new int[map_col];
+	for (int i = 0; i < map_row; i++) {
+		for (int j = 0; j < map_col; j++) {
+			cost[i][j] = 0;
+		}
+	}
+
 	vector<char> path;
 	node* start = new node();
 	start->contains = map[S_row][S_col];
 	start->row = S_row;
 	start->col = S_col;
 	record[S_row][S_col] = 1;
+	cost[S_row][S_col] = 1;
 	start->path_cost = 1;
 	start->path_length = 0;
 	vector<node*> frontier;
 
-	find_frontier_v(record, map, start, frontier, map_row, map_col);
-	//frontier.pop();
+	find_frontier_v(record, cost, map, start, frontier, map_row, map_col);
 
 	bool stop = false;
 	node* now = start;
@@ -519,13 +604,17 @@ vector<char> uniform_search(char** map, int& num_nodes, int S_row, int S_col,
 				delete[] record[i];
 			}
 			delete[] record;
+			for (int i = 0; i < map_row; ++i) {
+				delete[] cost[i];
+			}
+			delete[] cost;
 			return now->path;
 		}
 
 		int min = minimum_cost(frontier);
 		now = frontier[min];
 		frontier.erase(frontier.begin() + min);
-		find_frontier_v(record, map, now, frontier, map_row, map_col);
+		find_frontier_v(record, cost, map, now, frontier, map_row, map_col);
 		num_nodes++;
 	}
 
@@ -537,6 +626,17 @@ int manhattan(node* now, int G_row, int G_col) {
 
 	int distance = abs(G_col - now->col) + abs(G_row - now->row);
 	return distance;
+}
+
+int mover_horizon(node* now, int G_row, int G_col) {
+
+	int distance = abs(G_col - now->col) + 1 / 4 * abs(G_row - now->row);
+	return distance;
+}
+
+int zero_h(node* now, int G_row, int G_col) {
+
+	return 0;
 }
 
 int damage(char** map, int row, int col) {
@@ -556,93 +656,68 @@ int damage(char** map, int row, int col) {
 		return number_tower;
 }
 
-int minimum_distance(vector<node*> frontier) {
+int minimum_m_distance(vector<node*> frontier) {
 	int min_dist = frontier[0]->distance;
 	int min_index = 0;
+	int min_index_row = frontier[0]->row;
+	int min_index_col = frontier[0]->col;
+	int min_index_health = frontier[0]->health;
 	for (int i = 0; i < frontier.size(); i++) {
-		if (frontier[i]->distance <= min_dist) {
+		if (frontier[i]->distance < min_dist) {
 			min_dist = frontier[i]->distance;
 			min_index = i;
+			min_index_row = frontier[i]->row;
+			min_index_col = frontier[i]->col;
+			min_index_health = frontier[i]->health;
+		}
+
+		else if (frontier[i]->distance == min_dist) {
+			if (frontier[i]->row < min_index_row) {
+				min_dist = frontier[i]->distance;
+				min_index = i;
+				min_index_row = frontier[i]->row;
+				min_index_col = frontier[i]->col;
+				min_index_health = frontier[i]->health;
+
+			} else if (frontier[i]->row == min_index_row) {
+				if (frontier[i]->col < min_index_col) {
+					min_dist = frontier[i]->distance;
+					min_index = i;
+					min_index_row = frontier[i]->row;
+					min_index_col = frontier[i]->col;
+					min_index_health = frontier[i]->health;
+
+				}
+
+				else if (frontier[i]->col == min_index_col) {
+					if (frontier[i]->health > min_index_health) {
+						min_dist = frontier[i]->distance;
+						min_index = i;
+						min_index_row = frontier[i]->row;
+						min_index_col = frontier[i]->col;
+						min_index_health = frontier[i]->health;
+					}
+				}
+			}
 		}
 	}
 	return min_index;
 
 }
 
-bool health_before(node* now, int*** record) {
-	for (int i = 4; i > now->health - 1; i--) {
-		if (record[now->row][now->col][i] != 0)
-			return false;
+int same_r_c_h(vector<node*>& frontier, int row, int col, int health) {
+	int index = -1;
+	for (int i = 0; i < frontier.size(); i++) {
+		if (frontier[i]->row == row && frontier[i]->col == col
+				&& frontier[i]->health == health)
+			index = i;
 	}
-	return true;
+	return index;
 }
 
-void find_frontier_greedy(int*** record, char** map, node* now,
+void find_frontier_h_m(int*** record, int***cost, char** map, node* now,
 		vector<node*>& frontier, int map_row, int map_col, int G_row,
 		int G_col) {
-
-	if (now->row == map_row) {
-		now->south = NULL;
-	} else {
-		now->south = new node();
-		node* temp = now->south;
-		temp->contains = map[now->row + 1][now->col];
-		temp->row = now->row + 1;
-		temp->col = now->col;
-
-		if (temp->contains != 'X' && temp->contains != 'O') {
-			temp->health = now->health - damage(map, temp->row, temp->col);
-			if (temp->health > 0
-					&& record[temp->row][temp->col][temp->health - 1] == 0
-					&& health_before(temp, record)) {
-				record[temp->row][temp->col][temp->health - 1] = 1;
-				temp->distance = manhattan(temp, G_row, G_col);
-				temp->path = now->path;
-				temp->path.push_back('S');
-				temp->path_length = now->path_length + 1;
-				if (now->contains == ' ')
-					temp->path_cost = now->path_cost + 1;
-				else if (now->contains == '*')
-					temp->path_cost = now->path_cost + 3;
-				else
-					temp->path_cost = now->path_cost;
-				frontier.push_back(temp);
-
-			}
-		}
-	}
-
-	if (now->col == map_col) {
-		now->east = NULL;
-	} else {
-
-		now->east = new node();
-		node* temp = now->east;
-		temp->contains = map[now->row][now->col + 1];
-		temp->row = now->row;
-		temp->col = now->col + 1;
-
-		if (temp->contains != 'X' && temp->contains != 'O') {
-			temp->health = now->health - damage(map, temp->row, temp->col);
-			if (temp->health > 0
-					&& record[temp->row][temp->col][temp->health - 1] == 0
-					&& health_before(temp, record)) {
-				record[temp->row][temp->col][temp->health - 1] = 1;
-				temp->distance = manhattan(temp, G_row, G_col);
-				temp->path = now->path;
-				temp->path.push_back('E');
-				temp->path_length = now->path_length + 1;
-				if (now->contains == ' ')
-					temp->path_cost = now->path_cost + 1;
-				else if (now->contains == '*')
-					temp->path_cost = now->path_cost + 3;
-				else
-					temp->path_cost = now->path_cost;
-				frontier.push_back(temp);
-
-			}
-		}
-	}
 
 	if (now->col == 0) {
 		now->west = NULL;
@@ -652,27 +727,129 @@ void find_frontier_greedy(int*** record, char** map, node* now,
 		temp->contains = map[now->row][now->col - 1];
 		temp->row = now->row;
 		temp->col = now->col - 1;
+		temp->path = now->path;
+		temp->path.push_back('W');
+		temp->distance = manhattan(temp, G_row, G_col);
+		temp->path_length = now->path_length + 1;
+		if (now->contains == ' ')
+			temp->path_cost = now->path_cost + 1;
+		else if (now->contains == '*')
+			temp->path_cost = now->path_cost + 3;
+		else
+			temp->path_cost = now->path_cost;
 		if (temp->contains != 'X' && temp->contains != 'O') {
 			temp->health = now->health - damage(map, temp->row, temp->col);
-			if (temp->health > 0
-					&& record[temp->row][temp->col][temp->health - 1] == 0
-					&& health_before(temp, record)) {
-				record[temp->row][temp->col][temp->health - 1] = 1;
-				temp->distance = manhattan(temp, G_row, G_col);
-				temp->path = now->path;
-				temp->path.push_back('W');
-				temp->path_length = now->path_length + 1;
-				if (now->contains == ' ')
-					temp->path_cost = now->path_cost + 1;
-				else if (now->contains == '*')
-					temp->path_cost = now->path_cost + 3;
-				else
-					temp->path_cost = now->path_cost;
-				frontier.push_back(temp);
+
+			if ((record[temp->row][temp->col][now->health - 1] == 0
+					|| temp->distance
+							< cost[temp->row][temp->col][now->health - 1])
+					&& temp->health > 0) {
+				if (record[temp->row][temp->col][now->health - 1] == 0) {
+					frontier.push_back(temp);
+				} else if (temp->distance
+						< cost[temp->row][temp->col][now->health - 1]) {
+					int index = same_r_c_h(frontier, temp->row, temp->col,
+							temp->health);
+					frontier.erase(frontier.begin() + index);
+					frontier.push_back(temp);
+
+				}
+
+				cost[temp->row][temp->col][now->health - 1] = temp->distance;
+
+				record[temp->row][temp->col][now->health - 1] = 1;
 
 			}
 		}
 	}
+	if (now->row == map_row - 1) {
+		now->south = NULL;
+	} else {
+		now->south = new node();
+		node* temp = now->south;
+		temp->contains = map[now->row + 1][now->col];
+		temp->row = now->row + 1;
+		temp->col = now->col;
+		temp->path = now->path;
+		temp->path.push_back('S');
+		temp->distance = manhattan(temp, G_row, G_col);
+		temp->path_length = now->path_length + 1;
+		if (now->contains == ' ')
+			temp->path_cost = now->path_cost + 1;
+		else if (now->contains == '*')
+			temp->path_cost = now->path_cost + 3;
+		else
+			temp->path_cost = now->path_cost;
+		if (temp->contains != 'X' && temp->contains != 'O') {
+			temp->health = now->health - damage(map, temp->row, temp->col);
+
+			if ((record[temp->row][temp->col][now->health - 1] == 0
+					|| temp->distance
+							< cost[temp->row][temp->col][now->health - 1])
+					&& temp->health > 0) {
+				if (record[temp->row][temp->col][now->health - 1] == 0) {
+					frontier.push_back(temp);
+				} else if (temp->distance
+						< cost[temp->row][temp->col][now->health - 1]) {
+					int index = same_r_c_h(frontier, temp->row, temp->col,
+							temp->health);
+					frontier.erase(frontier.begin() + index);
+					frontier.push_back(temp);
+
+				}
+
+				cost[temp->row][temp->col][now->health - 1] = temp->distance;
+
+				record[temp->row][temp->col][now->health - 1] = 1;
+
+			}
+		}
+	}
+	if (now->col == map_col) {
+		now->east = NULL;
+	} else {
+
+		now->east = new node();
+		node* temp = now->east;
+		temp->contains = map[now->row][now->col + 1];
+		temp->row = now->row;
+		temp->col = now->col + 1;
+		temp->path = now->path;
+		temp->path.push_back('E');
+		temp->distance = manhattan(temp, G_row, G_col);
+		temp->path_length = now->path_length + 1;
+		if (now->contains == ' ')
+			temp->path_cost = now->path_cost + 1;
+		else if (now->contains == '*')
+			temp->path_cost = now->path_cost + 3;
+		else
+			temp->path_cost = now->path_cost;
+		if (temp->contains != 'X' && temp->contains != 'O') {
+			temp->health = now->health - damage(map, temp->row, temp->col);
+
+			if ((record[temp->row][temp->col][now->health - 1] == 0
+					|| temp->distance
+							< cost[temp->row][temp->col][now->health - 1])
+					&& temp->health > 0) {
+				if (record[temp->row][temp->col][now->health - 1] == 0) {
+					frontier.push_back(temp);
+				} else if (temp->distance
+						< cost[temp->row][temp->col][now->health - 1]) {
+					int index = same_r_c_h(frontier, temp->row, temp->col,
+							temp->health);
+					frontier.erase(frontier.begin() + index);
+					frontier.push_back(temp);
+
+				}
+
+				cost[temp->row][temp->col][now->health - 1] = temp->distance;
+
+				record[temp->row][temp->col][now->health - 1] = 1;
+
+			}
+		}
+	}
+
 	if (now->row == 0) {
 		now->north = NULL;
 	} else {
@@ -681,24 +858,588 @@ void find_frontier_greedy(int*** record, char** map, node* now,
 		temp->contains = map[now->row - 1][now->col];
 		temp->row = now->row - 1;
 		temp->col = now->col;
+		temp->path = now->path;
+		temp->path.push_back('N');
+		temp->distance = manhattan(temp, G_row, G_col);
+		temp->path_length = now->path_length + 1;
+		if (now->contains == ' ')
+			temp->path_cost = now->path_cost + 1;
+		else if (now->contains == '*')
+			temp->path_cost = now->path_cost + 3;
+		else
+			temp->path_cost = now->path_cost;
 		if (temp->contains != 'X' && temp->contains != 'O') {
 			temp->health = now->health - damage(map, temp->row, temp->col);
-			if (temp->health > 0
-					&& record[temp->row][temp->col][temp->health - 1] == 0
-					&& health_before(temp, record)) {
 
-				record[temp->row][temp->col][temp->health - 1] = 1;
-				temp->distance = manhattan(temp, G_row, G_col);
-				temp->path = now->path;
-				temp->path.push_back('N');
-				temp->path_length = now->path_length + 1;
-				if (now->contains == ' ')
-					temp->path_cost = now->path_cost + 1;
-				else if (now->contains == '*')
-					temp->path_cost = now->path_cost + 3;
-				else
-					temp->path_cost = now->path_cost;
-				frontier.push_back(temp);
+			if ((record[temp->row][temp->col][now->health - 1] == 0
+					|| temp->distance
+							< cost[temp->row][temp->col][now->health - 1])
+					&& temp->health > 0) {
+				if (record[temp->row][temp->col][now->health - 1] == 0) {
+					frontier.push_back(temp);
+				} else if (temp->distance
+						< cost[temp->row][temp->col][now->health - 1]) {
+					int index = same_r_c_h(frontier, temp->row, temp->col,
+							temp->health);
+					frontier.erase(frontier.begin() + index);
+					frontier.push_back(temp);
+
+				}
+
+				cost[temp->row][temp->col][now->health - 1] = temp->distance;
+
+				record[temp->row][temp->col][now->health - 1] = 1;
+
+			}
+		}
+	}
+}
+
+void find_frontier_h_a(int*** record, int***cost, char** map, node* now,
+		vector<node*>& frontier, int map_row, int map_col, int G_row,
+		int G_col) {
+
+	if (now->col == 0) {
+		now->west = NULL;
+	} else {
+		now->west = new node();
+		node* temp = now->west;
+		temp->contains = map[now->row][now->col - 1];
+		temp->row = now->row;
+		temp->col = now->col - 1;
+		temp->path = now->path;
+		temp->path.push_back('W');
+		temp->distance = manhattan(temp, G_row, G_col);
+		temp->path_length = now->path_length + 1;
+		if (now->contains == ' ')
+			temp->path_cost = now->path_cost + 1;
+		else if (now->contains == '*')
+			temp->path_cost = now->path_cost + 3;
+		else
+			temp->path_cost = now->path_cost;
+		if (temp->contains != 'X' && temp->contains != 'O') {
+			temp->health = now->health - damage(map, temp->row, temp->col);
+
+			if ((record[temp->row][temp->col][now->health - 1] == 0
+					|| temp->distance + temp->path_cost
+							< cost[temp->row][temp->col][now->health - 1])
+					&& temp->health > 0) {
+				if (record[temp->row][temp->col][now->health - 1] == 0) {
+					frontier.push_back(temp);
+				} else if (temp->distance
+						< cost[temp->row][temp->col][now->health - 1]) {
+					int index = same_r_c_h(frontier, temp->row, temp->col,
+							temp->health);
+					frontier.erase(frontier.begin() + index);
+					frontier.push_back(temp);
+
+				}
+
+				cost[temp->row][temp->col][now->health - 1] = temp->distance
+						+ temp->path_cost;
+
+				record[temp->row][temp->col][now->health - 1] = 1;
+
+			}
+		}
+	}
+	if (now->row == map_row - 1) {
+		now->south = NULL;
+	} else {
+		now->south = new node();
+		node* temp = now->south;
+		temp->contains = map[now->row + 1][now->col];
+		temp->row = now->row + 1;
+		temp->col = now->col;
+		temp->path = now->path;
+		temp->path.push_back('S');
+		temp->distance = manhattan(temp, G_row, G_col);
+		temp->path_length = now->path_length + 1;
+		if (now->contains == ' ')
+			temp->path_cost = now->path_cost + 1;
+		else if (now->contains == '*')
+			temp->path_cost = now->path_cost + 3;
+		else
+			temp->path_cost = now->path_cost;
+		if (temp->contains != 'X' && temp->contains != 'O') {
+			temp->health = now->health - damage(map, temp->row, temp->col);
+
+			if ((record[temp->row][temp->col][now->health - 1] == 0
+					|| temp->distance + temp->path_cost
+							< cost[temp->row][temp->col][now->health - 1])
+					&& temp->health > 0) {
+				if (record[temp->row][temp->col][now->health - 1] == 0) {
+					frontier.push_back(temp);
+				} else if (temp->distance
+						< cost[temp->row][temp->col][now->health - 1]) {
+					int index = same_r_c_h(frontier, temp->row, temp->col,
+							temp->health);
+					frontier.erase(frontier.begin() + index);
+					frontier.push_back(temp);
+
+				}
+
+				cost[temp->row][temp->col][now->health - 1] = temp->distance
+						+ temp->path_cost;
+
+				record[temp->row][temp->col][now->health - 1] = 1;
+
+			}
+		}
+	}
+	if (now->col == map_col) {
+		now->east = NULL;
+	} else {
+
+		now->east = new node();
+		node* temp = now->east;
+		temp->contains = map[now->row][now->col + 1];
+		temp->row = now->row;
+		temp->col = now->col + 1;
+		temp->path = now->path;
+		temp->path.push_back('E');
+		temp->distance = manhattan(temp, G_row, G_col);
+		temp->path_length = now->path_length + 1;
+		if (now->contains == ' ')
+			temp->path_cost = now->path_cost + 1;
+		else if (now->contains == '*')
+			temp->path_cost = now->path_cost + 3;
+		else
+			temp->path_cost = now->path_cost;
+		if (temp->contains != 'X' && temp->contains != 'O') {
+			temp->health = now->health - damage(map, temp->row, temp->col);
+
+			if ((record[temp->row][temp->col][now->health - 1] == 0
+					|| temp->distance + temp->path_cost
+							< cost[temp->row][temp->col][now->health - 1])
+					&& temp->health > 0) {
+				if (record[temp->row][temp->col][now->health - 1] == 0) {
+					frontier.push_back(temp);
+				} else if (temp->distance
+						< cost[temp->row][temp->col][now->health - 1]) {
+					int index = same_r_c_h(frontier, temp->row, temp->col,
+							temp->health);
+					frontier.erase(frontier.begin() + index);
+					frontier.push_back(temp);
+
+				}
+
+				cost[temp->row][temp->col][now->health - 1] = temp->distance
+						+ temp->path_cost;
+
+				record[temp->row][temp->col][now->health - 1] = 1;
+
+			}
+		}
+	}
+
+	if (now->row == 0) {
+		now->north = NULL;
+	} else {
+		now->north = new node();
+		node* temp = now->north;
+		temp->contains = map[now->row - 1][now->col];
+		temp->row = now->row - 1;
+		temp->col = now->col;
+		temp->path = now->path;
+		temp->path.push_back('N');
+		temp->distance = manhattan(temp, G_row, G_col);
+		temp->path_length = now->path_length + 1;
+		if (now->contains == ' ')
+			temp->path_cost = now->path_cost + 1;
+		else if (now->contains == '*')
+			temp->path_cost = now->path_cost + 3;
+		else
+			temp->path_cost = now->path_cost;
+		if (temp->contains != 'X' && temp->contains != 'O') {
+			temp->health = now->health - damage(map, temp->row, temp->col);
+
+			if ((record[temp->row][temp->col][now->health - 1] == 0
+					|| temp->distance + temp->path_cost
+							< cost[temp->row][temp->col][now->health - 1])
+					&& temp->health > 0) {
+				if (record[temp->row][temp->col][now->health - 1] == 0) {
+					frontier.push_back(temp);
+				} else if (temp->distance
+						< cost[temp->row][temp->col][now->health - 1]) {
+					int index = same_r_c_h(frontier, temp->row, temp->col,
+							temp->health);
+					frontier.erase(frontier.begin() + index);
+					frontier.push_back(temp);
+
+				}
+
+				cost[temp->row][temp->col][now->health - 1] = temp->distance
+						+ temp->path_cost;
+
+				record[temp->row][temp->col][now->health - 1] = 1;
+
+			}
+		}
+	}
+}
+
+void find_frontier_h_move_h(int*** record, int***cost, char** map, node* now,
+		vector<node*>& frontier, int map_row, int map_col, int G_row,
+		int G_col) {
+	if (now->col == 0) {
+		now->west = NULL;
+	} else {
+		now->west = new node();
+		node* temp = now->west;
+		temp->contains = map[now->row][now->col - 1];
+		temp->row = now->row;
+		temp->col = now->col - 1;
+		temp->path = now->path;
+		temp->path.push_back('W');
+		temp->distance = mover_horizon(temp, G_row, G_col);
+		temp->path_length = now->path_length + 1;
+		if (now->contains == ' ')
+			temp->path_cost = now->path_cost + 1;
+		else if (now->contains == '*')
+			temp->path_cost = now->path_cost + 3;
+		else
+			temp->path_cost = now->path_cost;
+		if (temp->contains != 'X' && temp->contains != 'O') {
+			temp->health = now->health - damage(map, temp->row, temp->col);
+
+			if ((record[temp->row][temp->col][now->health - 1] == 0
+					|| temp->distance + temp->path_cost
+							< cost[temp->row][temp->col][now->health - 1])
+					&& temp->health > 0) {
+				if (record[temp->row][temp->col][now->health - 1] == 0) {
+					frontier.push_back(temp);
+				} else if (temp->distance
+						< cost[temp->row][temp->col][now->health - 1]) {
+					int index = same_r_c_h(frontier, temp->row, temp->col,
+							temp->health);
+					frontier.erase(frontier.begin() + index);
+					frontier.push_back(temp);
+
+				}
+
+				cost[temp->row][temp->col][now->health - 1] = temp->distance
+						+ temp->path_cost;
+
+				record[temp->row][temp->col][now->health - 1] = 1;
+
+			}
+		}
+	}
+	if (now->row == map_row - 1) {
+		now->south = NULL;
+	} else {
+		now->south = new node();
+		node* temp = now->south;
+		temp->contains = map[now->row + 1][now->col];
+		temp->row = now->row + 1;
+		temp->col = now->col;
+		temp->path = now->path;
+		temp->path.push_back('S');
+		temp->distance = mover_horizon(temp, G_row, G_col);
+		temp->path_length = now->path_length + 1;
+		if (now->contains == ' ')
+			temp->path_cost = now->path_cost + 1;
+		else if (now->contains == '*')
+			temp->path_cost = now->path_cost + 3;
+		else
+			temp->path_cost = now->path_cost;
+		if (temp->contains != 'X' && temp->contains != 'O') {
+			temp->health = now->health - damage(map, temp->row, temp->col);
+
+			if ((record[temp->row][temp->col][now->health - 1] == 0
+					|| temp->distance + temp->path_cost
+							< cost[temp->row][temp->col][now->health - 1])
+					&& temp->health > 0) {
+				if (record[temp->row][temp->col][now->health - 1] == 0) {
+					frontier.push_back(temp);
+				} else if (temp->distance
+						< cost[temp->row][temp->col][now->health - 1]) {
+					int index = same_r_c_h(frontier, temp->row, temp->col,
+							temp->health);
+					frontier.erase(frontier.begin() + index);
+					frontier.push_back(temp);
+
+				}
+
+				cost[temp->row][temp->col][now->health - 1] = temp->distance
+						+ temp->path_cost;
+
+				record[temp->row][temp->col][now->health - 1] = 1;
+
+			}
+		}
+	}
+	if (now->col == map_col) {
+		now->east = NULL;
+	} else {
+
+		now->east = new node();
+		node* temp = now->east;
+		temp->contains = map[now->row][now->col + 1];
+		temp->row = now->row;
+		temp->col = now->col + 1;
+		temp->path = now->path;
+		temp->path.push_back('E');
+		temp->distance = mover_horizon(temp, G_row, G_col);
+		temp->path_length = now->path_length + 1;
+		if (now->contains == ' ')
+			temp->path_cost = now->path_cost + 1;
+		else if (now->contains == '*')
+			temp->path_cost = now->path_cost + 3;
+		else
+			temp->path_cost = now->path_cost;
+		if (temp->contains != 'X' && temp->contains != 'O') {
+			temp->health = now->health - damage(map, temp->row, temp->col);
+
+			if ((record[temp->row][temp->col][now->health - 1] == 0
+					|| temp->distance + temp->path_cost
+							< cost[temp->row][temp->col][now->health - 1])
+					&& temp->health > 0) {
+				if (record[temp->row][temp->col][now->health - 1] == 0) {
+					frontier.push_back(temp);
+				} else if (temp->distance
+						< cost[temp->row][temp->col][now->health - 1]) {
+					int index = same_r_c_h(frontier, temp->row, temp->col,
+							temp->health);
+					frontier.erase(frontier.begin() + index);
+					frontier.push_back(temp);
+
+				}
+
+				cost[temp->row][temp->col][now->health - 1] = temp->distance
+						+ temp->path_cost;
+
+				record[temp->row][temp->col][now->health - 1] = 1;
+
+			}
+		}
+	}
+
+	if (now->row == 0) {
+		now->north = NULL;
+	} else {
+		now->north = new node();
+		node* temp = now->north;
+		temp->contains = map[now->row - 1][now->col];
+		temp->row = now->row - 1;
+		temp->col = now->col;
+		temp->path = now->path;
+		temp->path.push_back('N');
+		temp->distance = mover_horizon(temp, G_row, G_col);
+		temp->path_length = now->path_length + 1;
+		if (now->contains == ' ')
+			temp->path_cost = now->path_cost + 1;
+		else if (now->contains == '*')
+			temp->path_cost = now->path_cost + 3;
+		else
+			temp->path_cost = now->path_cost;
+		if (temp->contains != 'X' && temp->contains != 'O') {
+			temp->health = now->health - damage(map, temp->row, temp->col);
+
+			if ((record[temp->row][temp->col][now->health - 1] == 0
+					|| temp->distance + temp->path_cost
+							< cost[temp->row][temp->col][now->health - 1])
+					&& temp->health > 0) {
+				if (record[temp->row][temp->col][now->health - 1] == 0) {
+					frontier.push_back(temp);
+				} else if (temp->distance
+						< cost[temp->row][temp->col][now->health - 1]) {
+					int index = same_r_c_h(frontier, temp->row, temp->col,
+							temp->health);
+					frontier.erase(frontier.begin() + index);
+					frontier.push_back(temp);
+
+				}
+
+				cost[temp->row][temp->col][now->health - 1] = temp->distance
+						+ temp->path_cost;
+
+				record[temp->row][temp->col][now->health - 1] = 1;
+
+			}
+		}
+	}
+}
+
+void find_frontier_0(int*** record, int***cost, char** map, node* now,
+		vector<node*>& frontier, int map_row, int map_col, int G_row,
+		int G_col) {
+
+	if (now->col == 0) {
+		now->west = NULL;
+	} else {
+		now->west = new node();
+		node* temp = now->west;
+		temp->contains = map[now->row][now->col - 1];
+		temp->row = now->row;
+		temp->col = now->col - 1;
+		temp->path = now->path;
+		temp->path.push_back('W');
+		temp->distance = 0;
+		temp->path_length = now->path_length + 1;
+		if (now->contains == ' ')
+			temp->path_cost = now->path_cost + 1;
+		else if (now->contains == '*')
+			temp->path_cost = now->path_cost + 3;
+		else
+			temp->path_cost = now->path_cost;
+		if (temp->contains != 'X' && temp->contains != 'O') {
+			temp->health = now->health - damage(map, temp->row, temp->col);
+
+			if ((record[temp->row][temp->col][now->health - 1] == 0
+					|| temp->distance + temp->path_cost
+							< cost[temp->row][temp->col][now->health - 1])
+					&& temp->health > 0) {
+				if (record[temp->row][temp->col][now->health - 1] == 0) {
+					frontier.push_back(temp);
+				} else if (temp->distance
+						< cost[temp->row][temp->col][now->health - 1]) {
+					int index = same_r_c_h(frontier, temp->row, temp->col,
+							temp->health);
+					frontier.erase(frontier.begin() + index);
+					frontier.push_back(temp);
+
+				}
+
+				cost[temp->row][temp->col][now->health - 1] = temp->distance
+						+ temp->path_cost;
+
+				record[temp->row][temp->col][now->health - 1] = 1;
+
+			}
+		}
+	}
+	if (now->row == map_row - 1) {
+		now->south = NULL;
+	} else {
+		now->south = new node();
+		node* temp = now->south;
+		temp->contains = map[now->row + 1][now->col];
+		temp->row = now->row + 1;
+		temp->col = now->col;
+		temp->path = now->path;
+		temp->path.push_back('S');
+		temp->distance = 0;
+		temp->path_length = now->path_length + 1;
+		if (now->contains == ' ')
+			temp->path_cost = now->path_cost + 1;
+		else if (now->contains == '*')
+			temp->path_cost = now->path_cost + 3;
+		else
+			temp->path_cost = now->path_cost;
+		if (temp->contains != 'X' && temp->contains != 'O') {
+			temp->health = now->health - damage(map, temp->row, temp->col);
+
+			if ((record[temp->row][temp->col][now->health - 1] == 0
+					|| temp->distance + temp->path_cost
+							< cost[temp->row][temp->col][now->health - 1])
+					&& temp->health > 0) {
+				if (record[temp->row][temp->col][now->health - 1] == 0) {
+					frontier.push_back(temp);
+				} else if (temp->distance
+						< cost[temp->row][temp->col][now->health - 1]) {
+					int index = same_r_c_h(frontier, temp->row, temp->col,
+							temp->health);
+					frontier.erase(frontier.begin() + index);
+					frontier.push_back(temp);
+
+				}
+
+				cost[temp->row][temp->col][now->health - 1] = temp->distance
+						+ temp->path_cost;
+
+				record[temp->row][temp->col][now->health - 1] = 1;
+
+			}
+		}
+	}
+	if (now->col == map_col) {
+		now->east = NULL;
+	} else {
+
+		now->east = new node();
+		node* temp = now->east;
+		temp->contains = map[now->row][now->col + 1];
+		temp->row = now->row;
+		temp->col = now->col + 1;
+		temp->path = now->path;
+		temp->path.push_back('E');
+		temp->distance = 0;
+		temp->path_length = now->path_length + 1;
+		if (now->contains == ' ')
+			temp->path_cost = now->path_cost + 1;
+		else if (now->contains == '*')
+			temp->path_cost = now->path_cost + 3;
+		else
+			temp->path_cost = now->path_cost;
+		if (temp->contains != 'X' && temp->contains != 'O') {
+			temp->health = now->health - damage(map, temp->row, temp->col);
+
+			if ((record[temp->row][temp->col][now->health - 1] == 0
+					|| temp->distance + temp->path_cost
+							< cost[temp->row][temp->col][now->health - 1])
+					&& temp->health > 0) {
+				if (record[temp->row][temp->col][now->health - 1] == 0) {
+					frontier.push_back(temp);
+				} else if (temp->distance
+						< cost[temp->row][temp->col][now->health - 1]) {
+					int index = same_r_c_h(frontier, temp->row, temp->col,
+							temp->health);
+					frontier.erase(frontier.begin() + index);
+					frontier.push_back(temp);
+
+				}
+
+				cost[temp->row][temp->col][now->health - 1] = temp->distance
+						+ temp->path_cost;
+
+				record[temp->row][temp->col][now->health - 1] = 1;
+
+			}
+		}
+	}
+
+	if (now->row == 0) {
+		now->north = NULL;
+	} else {
+		now->north = new node();
+		node* temp = now->north;
+		temp->contains = map[now->row - 1][now->col];
+		temp->row = now->row - 1;
+		temp->col = now->col;
+		temp->path = now->path;
+		temp->path.push_back('N');
+		temp->distance = 0;
+		temp->path_length = now->path_length + 1;
+		if (now->contains == ' ')
+			temp->path_cost = now->path_cost + 1;
+		else if (now->contains == '*')
+			temp->path_cost = now->path_cost + 3;
+		else
+			temp->path_cost = now->path_cost;
+		if (temp->contains != 'X' && temp->contains != 'O') {
+			temp->health = now->health - damage(map, temp->row, temp->col);
+
+			if ((record[temp->row][temp->col][now->health - 1] == 0
+					|| temp->distance + temp->path_cost
+							< cost[temp->row][temp->col][now->health - 1])
+					&& temp->health > 0) {
+				if (record[temp->row][temp->col][now->health - 1] == 0) {
+					frontier.push_back(temp);
+				} else if (temp->distance
+						< cost[temp->row][temp->col][now->health - 1]) {
+					int index = same_r_c_h(frontier, temp->row, temp->col,
+							temp->health);
+					frontier.erase(frontier.begin() + index);
+					frontier.push_back(temp);
+
+				}
+
+				cost[temp->row][temp->col][now->health - 1] = temp->distance
+						+ temp->path_cost;
+
+				record[temp->row][temp->col][now->health - 1] = 1;
 
 			}
 		}
@@ -723,6 +1464,166 @@ vector<char> greedy(char** map, int& num_nodes, int S_row, int S_col,
 			}
 		}
 	}
+	int*** cost = new int**[map_row];
+	for (int i = 0; i < map_row; ++i) {
+		cost[i] = new int*[map_col];
+		for (int j = 0; j < map_col; j++) {
+			cost[i][j] = new int[5];
+		}
+	}
+
+	for (int i = 0; i < map_row; i++) {
+		for (int j = 0; j < map_col; j++) {
+			for (int k = 0; k < 5; k++) {
+				cost[i][j][k] = 0;
+			}
+		}
+	}
+	vector<char> path;
+	node* start = new node();
+	start->contains = map[S_row][S_col];
+	start->row = S_row;
+	start->col = S_col;
+	record[S_row][S_col][4] = 1;
+	start->path_cost = 1;
+	start->path_length = 0;
+	start->health = 5;
+	start->distance = manhattan(start, G_row, G_col);
+	cost[S_row][S_col][4] = manhattan(start, G_row, G_col);
+	vector<node*> frontier;
+	find_frontier_h_m(record, cost, map, start, frontier, map_row, map_col,
+			G_row, G_col);
+
+	bool stop = false;
+	node* now = start;
+
+	while (stop == false) {
+
+		if (frontier.empty()) {
+			cout << "OH NO!!!!!!!!!!!!!!!!!";
+			vector<char> a;
+			return a;
+		}
+		if (now->contains == 'G') {
+			cout << '\n';
+			cout << "Greedy  Search: " << endl;
+
+			printInfo(now, num_nodes);
+
+			for (int i = 0; i < map_row; ++i) {
+				for (int j = 0; j < map_col; j++) {
+					delete[] record[i][j];
+				}
+				delete[] record[i];
+			}
+
+			delete[] record;
+			for (int i = 0; i < map_row; ++i) {
+				for (int j = 0; j < map_col; j++) {
+					delete[] cost[i][j];
+				}
+				delete[] cost[i];
+			}
+
+			delete[] cost;
+			return now->path;
+		}
+
+		int min = minimum_m_distance(frontier);
+		now = frontier[min];
+
+		find_frontier_h_m(record, cost, map, now, frontier, map_row, map_col,
+				G_row, G_col);
+		frontier.erase(frontier.begin() + min);
+
+		num_nodes++;
+	}
+
+	return path;
+}
+
+int minimum_a_distance(vector<node*> frontier) {
+	int min_dist = frontier[0]->distance + frontier[0]->path_cost;
+	int min_index = 0;
+	int min_index_row = frontier[0]->row;
+	int min_index_col = frontier[0]->col;
+	int min_index_health = frontier[0]->health;
+	for (int i = 0; i < frontier.size(); i++) {
+		if (frontier[i]->distance + frontier[i]->path_cost < min_dist) {
+			min_dist = frontier[i]->distance + frontier[i]->path_cost;
+			min_index = i;
+			min_index_row = frontier[i]->row;
+			min_index_col = frontier[i]->col;
+			min_index_health = frontier[i]->health;
+		}
+
+		else if (frontier[i]->distance + frontier[i]->path_cost == min_dist) {
+			if (frontier[i]->row < min_index_row) {
+				min_dist = frontier[i]->distance + frontier[i]->path_cost;
+				min_index = i;
+				min_index_row = frontier[i]->row;
+				min_index_col = frontier[i]->col;
+				min_index_health = frontier[i]->health;
+
+			} else if (frontier[i]->row == min_index_row) {
+				if (frontier[i]->col < min_index_col) {
+					min_dist = frontier[i]->distance + frontier[i]->path_cost;
+					min_index = i;
+					min_index_row = frontier[i]->row;
+					min_index_col = frontier[i]->col;
+					min_index_health = frontier[i]->health;
+
+				}
+
+				else if (frontier[i]->col == min_index_col) {
+					if (frontier[i]->health > min_index_health) {
+						min_dist = frontier[i]->distance
+								+ frontier[i]->path_cost;
+						min_index = i;
+						min_index_row = frontier[i]->row;
+						min_index_col = frontier[i]->col;
+						min_index_health = frontier[i]->health;
+					}
+				}
+			}
+		}
+	}
+	return min_index;
+
+}
+
+vector<char> a_search(char** map, int& num_nodes, int S_row, int S_col,
+		int map_row, int map_col, int G_row, int G_col) {
+	int*** record = new int**[map_row];
+	for (int i = 0; i < map_row; ++i) {
+		record[i] = new int*[map_col];
+		for (int j = 0; j < map_col; j++) {
+			record[i][j] = new int[5];
+		}
+	}
+
+	for (int i = 0; i < map_row; i++) {
+		for (int j = 0; j < map_col; j++) {
+			for (int k = 0; k < 5; k++) {
+				record[i][j][k] = 0;
+			}
+		}
+	}
+	int*** cost = new int**[map_row];
+	for (int i = 0; i < map_row; ++i) {
+		cost[i] = new int*[map_col];
+		for (int j = 0; j < map_col; j++) {
+			cost[i][j] = new int[5];
+		}
+	}
+
+	for (int i = 0; i < map_row; i++) {
+		for (int j = 0; j < map_col; j++) {
+			for (int k = 0; k < 5; k++) {
+				cost[i][j][k] = 0;
+			}
+		}
+	}
 	vector<char> path;
 	node* start = new node();
 	start->contains = map[S_row][S_col];
@@ -734,7 +1635,104 @@ vector<char> greedy(char** map, int& num_nodes, int S_row, int S_col,
 	start->health = 5;
 	start->distance = manhattan(start, G_row, G_col);
 	vector<node*> frontier;
-	find_frontier_greedy(record, map, start, frontier, map_row, map_col, G_row,
+	find_frontier_h_m(record, cost, map, start, frontier, map_row, map_col,
+			G_row, G_col);
+
+	bool stop = false;
+	node* now = start;
+
+	while (stop == false) {
+
+		//cout << "Row: " << now->row + 1 << " Col: " << now->col << " Dist: "
+		//<< now->distance << " Heath: " << now->health << endl;
+
+		if (frontier.empty()) {
+			cout << "OH NO!!!!!!!!!!!!!!!!!";
+			vector<char> a;
+			return a;
+		}
+		if (now->contains == 'G') {
+			cout << '\n';
+			cout << "A*  Search: " << endl;
+
+			printInfo(now, num_nodes);
+
+			for (int i = 0; i < map_row; ++i) {
+				for (int j = 0; j < map_col; j++) {
+					delete[] record[i][j];
+				}
+				delete[] record[i];
+			}
+
+			delete[] record;
+			for (int i = 0; i < map_row; ++i) {
+				for (int j = 0; j < map_col; j++) {
+					delete[] cost[i][j];
+				}
+				delete[] cost[i];
+			}
+
+			delete[] cost;
+			return now->path;
+		}
+
+		int min = minimum_a_distance(frontier);
+		now = frontier[min];
+
+		frontier.erase(frontier.begin() + min);
+		find_frontier_h_a(record, cost, map, now, frontier, map_row, map_col,
+				G_row, G_col);
+		num_nodes++;
+	}
+
+	return path;
+}
+
+vector<char> a_search_1(char** map, int& num_nodes, int S_row, int S_col,
+		int map_row, int map_col, int G_row, int G_col) {
+	int*** record = new int**[map_row];
+	for (int i = 0; i < map_row; ++i) {
+		record[i] = new int*[map_col];
+		for (int j = 0; j < map_col; j++) {
+			record[i][j] = new int[5];
+		}
+	}
+
+	for (int i = 0; i < map_row; i++) {
+		for (int j = 0; j < map_col; j++) {
+			for (int k = 0; k < 5; k++) {
+				record[i][j][k] = 0;
+			}
+		}
+	}
+	int*** cost = new int**[map_row];
+	for (int i = 0; i < map_row; ++i) {
+		cost[i] = new int*[map_col];
+		for (int j = 0; j < map_col; j++) {
+			cost[i][j] = new int[5];
+		}
+	}
+
+	for (int i = 0; i < map_row; i++) {
+		for (int j = 0; j < map_col; j++) {
+			for (int k = 0; k < 5; k++) {
+				cost[i][j][k] = 0;
+			}
+		}
+	}
+	vector<char> path;
+	node* start = new node();
+	start->contains = map[S_row][S_col];
+	start->row = S_row;
+	start->col = S_col;
+	record[S_row][S_col][4] = 1;
+	start->path_cost = 1;
+	start->path_length = 0;
+	start->health = 5;
+	start->distance = zero_h(start, G_row, G_col);
+	cost[S_row][S_col][4]=start->distance+start->path_cost;
+	vector<node*> frontier;
+	find_frontier_0(record, cost, map, start, frontier, map_row, map_col, G_row,
 			G_col);
 
 	bool stop = false;
@@ -752,33 +1750,472 @@ vector<char> greedy(char** map, int& num_nodes, int S_row, int S_col,
 		}
 		if (now->contains == 'G') {
 			cout << '\n';
-			cout << "Greedy  Search: " << endl;
+			cout << "Zero : " << endl;
 			G_row = now->row;
 			G_col = now->col;
 			printInfo(now, num_nodes);
 
 			for (int i = 0; i < map_row; ++i) {
+				for (int j = 0; j < map_col; j++) {
+					delete[] record[i][j];
+				}
 				delete[] record[i];
-
 			}
 
 			delete[] record;
+			for (int i = 0; i < map_row; ++i) {
+				for (int j = 0; j < map_col; j++) {
+					delete[] cost[i][j];
+				}
+				delete[] cost[i];
+			}
+
+			delete[] cost;
 			return now->path;
 		}
 
-		int min = minimum_distance(frontier);
+		int min = minimum_a_distance(frontier);
 		now = frontier[min];
-		cout << now->distance << " ";
-		cout << now->row << " " << now->col << " ";
 
 		frontier.erase(frontier.begin() + min);
-		find_frontier_greedy(record, map, now, frontier, map_row, map_col,
+		find_frontier_0(record, cost, map, now, frontier, map_row, map_col,
 				G_row, G_col);
 		num_nodes++;
 	}
 
 	return path;
 }
+
+vector<char> a_search_3(char** map, int& num_nodes, int S_row, int S_col,
+		int map_row, int map_col, int G_row, int G_col) {
+	int*** record = new int**[map_row];
+	for (int i = 0; i < map_row; ++i) {
+		record[i] = new int*[map_col];
+		for (int j = 0; j < map_col; j++) {
+			record[i][j] = new int[5];
+		}
+	}
+
+	for (int i = 0; i < map_row; i++) {
+		for (int j = 0; j < map_col; j++) {
+			for (int k = 0; k < 5; k++) {
+				record[i][j][k] = 0;
+			}
+		}
+	}
+
+	int*** cost = new int**[map_row];
+	for (int i = 0; i < map_row; ++i) {
+		cost[i] = new int*[map_col];
+		for (int j = 0; j < map_col; j++) {
+			cost[i][j] = new int[5];
+		}
+	}
+
+	for (int i = 0; i < map_row; i++) {
+		for (int j = 0; j < map_col; j++) {
+			for (int k = 0; k < 5; k++) {
+				cost[i][j][k] = 0;
+			}
+		}
+	}
+
+	vector<char> path;
+	node* start = new node();
+	start->contains = map[S_row][S_col];
+	start->row = S_row;
+	start->col = S_col;
+	record[S_row][S_col][4] = 1;
+	start->path_cost = 1;
+	start->path_length = 0;
+	start->health = 5;
+	start->distance = mover_horizon(start, G_row, G_col);
+	cost[S_row][S_col][4]=start->distance+start->path_cost;
+
+	vector<node*> frontier;
+	find_frontier_h_move_h(record, cost, map, start, frontier, map_row, map_col,
+			G_row, G_col);
+
+	bool stop = false;
+	node* now = start;
+
+	while (stop == false) {
+
+		//cout << "Row: " << now->row + 1 << " Col: " << now->col << " Dist: "
+		//<< now->distance << " Heath: " << now->health << endl;
+
+		if (frontier.empty()) {
+			cout << "OH NO!!!!!!!!!!!!!!!!!";
+			vector<char> a;
+			return a;
+		}
+		if (now->contains == 'G') {
+			cout << '\n';
+			cout << "Move Horizontally: " << endl;
+			G_row = now->row;
+			G_col = now->col;
+			printInfo(now, num_nodes);
+
+			for (int i = 0; i < map_row; ++i) {
+				for (int j = 0; j < map_col; j++) {
+					delete[] record[i][j];
+				}
+				delete[] record[i];
+			}
+
+			delete[] record;
+			for (int i = 0; i < map_row; ++i) {
+				for (int j = 0; j < map_col; j++) {
+					delete[] cost[i][j];
+				}
+				delete[] cost[i];
+			}
+
+			delete[] cost;
+			return now->path;
+		}
+
+		int min = minimum_a_distance(frontier);
+		now = frontier[min];
+
+		frontier.erase(frontier.begin() + min);
+		find_frontier_h_move_h(record, cost, map, now, frontier, map_row,
+				map_col, G_row, G_col);
+		num_nodes++;
+	}
+
+	return path;
+}
+
+int wall(char** map, node* now, int G_row, int G_col, int map_row,
+		int map_col) {
+	int distance = 0;
+	if ((map[now->row][now->col + 1] == 'X'
+			|| map[now->row][now->col + 1] == 'O')
+			&& now->col + 1 != map_col - 1) {
+		int north = -1;
+		int south = -1;
+
+		for (int i = now->row; i >= 0; i--) {
+			if (map[now->row][now->col + 1] != 'X'
+					&& map[now->row][now->col + 1] != 'O') {
+				north = i;
+				break;
+			}
+		}
+		for (int i = now->row; i < map_row; i++) {
+			if (map[now->row][now->col + 1] != 'X'
+					&& map[now->row][now->col + 1] != 'O') {
+				south = i;
+				break;
+			}
+		}
+		if (north != -1 && south != -1) {
+			int dis_n = abs(now->row - north) + abs(G_col - now->col)
+					+ abs(G_row - north);
+			int dis_s = abs(now->row - north) + abs(G_col - now->col)
+					+ abs(G_row - south);
+			distance = (dis_n < dis_s) ? dis_n : dis_s;
+		} else if (north != -1 && south == -1) {
+			distance = abs(now->row - north) + abs(G_col - now->col)
+					+ abs(G_row - north);
+
+		} else if (north == -1 && south != -1) {
+			distance = abs(now->row - south) + abs(G_col - now->col)
+					+ abs(G_row - south);
+
+		} else {
+			distance = abs(G_col - now->col) + abs(G_row - now->row);
+		}
+	} else {
+		distance = abs(G_col - now->col) + abs(G_row - now->row);
+	}
+
+	return distance;
+}
+
+void find_frontier_wall(int*** record, int*** cost, char** map, node* now,
+		vector<node*>& frontier, int map_row, int map_col, int G_row,
+		int G_col) {
+
+	if (now->col == 0) {
+		now->west = NULL;
+	} else {
+		now->west = new node();
+		node* temp = now->west;
+		temp->contains = map[now->row][now->col - 1];
+		temp->row = now->row;
+		temp->col = now->col - 1;
+		temp->path = now->path;
+		temp->path.push_back('W');
+
+		temp->path_length = now->path_length + 1;
+		if (now->contains == ' ')
+			temp->path_cost = now->path_cost + 1;
+		else if (now->contains == '*')
+			temp->path_cost = now->path_cost + 3;
+		else
+			temp->path_cost = now->path_cost;
+		if (temp->contains != 'X' && temp->contains != 'O') {
+			temp->health = now->health - damage(map, temp->row, temp->col);
+			temp->distance = wall( map,  now,  G_row,  G_col,  map_row,
+							 map_col);
+			if ((record[temp->row][temp->col][now->health - 1] == 0
+					|| temp->distance + temp->path_length
+							< cost[temp->row][temp->col][now->health - 1])
+					&& temp->health > 0) {
+				if (record[temp->row][temp->col][now->health - 1] == 0) {
+					frontier.push_back(temp);
+				} else if (temp->distance + temp->path_length
+						< cost[temp->row][temp->col][now->health - 1]) {
+					int index = same_r_c_h(frontier, temp->row, temp->col,
+							temp->health);
+					frontier.erase(frontier.begin() + index);
+					frontier.push_back(temp);
+
+				}
+
+				cost[temp->row][temp->col][now->health - 1] = temp->distance + temp->path_length;
+
+				record[temp->row][temp->col][now->health - 1] = 1;
+
+			}
+		}
+	}
+	if (now->row == map_row - 1) {
+		now->south = NULL;
+	} else {
+		now->south = new node();
+		node* temp = now->south;
+		temp->contains = map[now->row + 1][now->col];
+		temp->row = now->row + 1;
+		temp->col = now->col;
+		temp->path = now->path;
+		temp->path.push_back('S');
+
+		temp->path_length = now->path_length + 1;
+		if (now->contains == ' ')
+			temp->path_cost = now->path_cost + 1;
+		else if (now->contains == '*')
+			temp->path_cost = now->path_cost + 3;
+		else
+			temp->path_cost = now->path_cost;
+		if (temp->contains != 'X' && temp->contains != 'O') {
+			temp->health = now->health - damage(map, temp->row, temp->col);
+			temp->distance = wall( map,  now,  G_row,  G_col,  map_row,
+							 map_col);
+			if ((record[temp->row][temp->col][now->health - 1] == 0
+					|| temp->distance + temp->path_length
+							< cost[temp->row][temp->col][now->health - 1])
+					&& temp->health > 0) {
+				if (record[temp->row][temp->col][now->health - 1] == 0) {
+					frontier.push_back(temp);
+				} else if (temp->distance + temp->path_length
+						< cost[temp->row][temp->col][now->health - 1]) {
+					int index = same_r_c_h(frontier, temp->row, temp->col,
+							temp->health);
+					frontier.erase(frontier.begin() + index);
+					frontier.push_back(temp);
+
+				}
+
+				cost[temp->row][temp->col][now->health - 1] = temp->distance + temp->path_length;
+
+				record[temp->row][temp->col][now->health - 1] = 1;
+
+			}
+		}
+	}
+	if (now->col == map_col) {
+		now->east = NULL;
+	} else {
+
+		now->east = new node();
+		node* temp = now->east;
+		temp->contains = map[now->row][now->col + 1];
+		temp->row = now->row;
+		temp->col = now->col + 1;
+		temp->path = now->path;
+		temp->path.push_back('E');
+
+		temp->path_length = now->path_length + 1;
+		if (now->contains == ' ')
+			temp->path_cost = now->path_cost + 1;
+		else if (now->contains == '*')
+			temp->path_cost = now->path_cost + 3;
+		else
+			temp->path_cost = now->path_cost;
+		if (temp->contains != 'X' && temp->contains != 'O') {
+			temp->health = now->health - damage(map, temp->row, temp->col);
+			temp->distance = wall( map,  now,  G_row,  G_col,  map_row,
+							 map_col);
+			if ((record[temp->row][temp->col][now->health - 1] == 0
+					|| temp->distance + temp->path_length
+							< cost[temp->row][temp->col][now->health - 1])
+					&& temp->health > 0) {
+				if (record[temp->row][temp->col][now->health - 1] == 0) {
+					frontier.push_back(temp);
+				} else if (temp->distance + temp->path_length
+						< cost[temp->row][temp->col][now->health - 1]) {
+					int index = same_r_c_h(frontier, temp->row, temp->col,
+							temp->health);
+					frontier.erase(frontier.begin() + index);
+					frontier.push_back(temp);
+
+				}
+
+				cost[temp->row][temp->col][now->health - 1] = temp->distance + temp->path_length;
+
+				record[temp->row][temp->col][now->health - 1] = 1;
+
+			}
+		}
+	}
+
+	if (now->row == 0) {
+		now->north = NULL;
+	} else {
+		now->north = new node();
+		node* temp = now->north;
+		temp->contains = map[now->row - 1][now->col];
+		temp->row = now->row - 1;
+		temp->col = now->col;
+		temp->path = now->path;
+		temp->path.push_back('N');
+
+		temp->path_length = now->path_length + 1;
+		if (now->contains == ' ')
+			temp->path_cost = now->path_cost + 1;
+		else if (now->contains == '*')
+			temp->path_cost = now->path_cost + 3;
+		else
+			temp->path_cost = now->path_cost;
+		if (temp->contains != 'X' && temp->contains != 'O') {
+			temp->health = now->health - damage(map, temp->row, temp->col);
+			temp->distance = wall( map,  now,  G_row,  G_col,  map_row,
+							 map_col);
+			if ((record[temp->row][temp->col][now->health - 1] == 0
+					|| temp->distance + temp->path_length
+							< cost[temp->row][temp->col][now->health - 1])
+					&& temp->health > 0) {
+				if (record[temp->row][temp->col][now->health - 1] == 0) {
+					frontier.push_back(temp);
+				} else if (temp->distance + temp->path_length
+						< cost[temp->row][temp->col][now->health - 1]) {
+					int index = same_r_c_h(frontier, temp->row, temp->col,
+							temp->health);
+					frontier.erase(frontier.begin() + index);
+					frontier.push_back(temp);
+
+				}
+
+				cost[temp->row][temp->col][now->health - 1] = temp->distance + temp->path_length;
+
+				record[temp->row][temp->col][now->health - 1] = 1;
+
+			}
+		}
+	}
+
+}
+
+vector<char> a_search_4(char** map, int& num_nodes, int S_row, int S_col,
+		int map_row, int map_col, int G_row, int G_col) {
+	int*** record = new int**[map_row];
+	for (int i = 0; i < map_row; ++i) {
+		record[i] = new int*[map_col];
+		for (int j = 0; j < map_col; j++) {
+			record[i][j] = new int[5];
+		}
+	}
+
+	for (int i = 0; i < map_row; i++) {
+		for (int j = 0; j < map_col; j++) {
+			for (int k = 0; k < 5; k++) {
+				record[i][j][k] = 0;
+			}
+		}
+	}
+
+	int*** cost = new int**[map_row];
+	for (int i = 0; i < map_row; ++i) {
+		cost[i] = new int*[map_col];
+		for (int j = 0; j < map_col; j++) {
+			cost[i][j] = new int[5];
+		}
+	}
+
+	for (int i = 0; i < map_row; i++) {
+		for (int j = 0; j < map_col; j++) {
+			for (int k = 0; k < 5; k++) {
+				cost[i][j][k] = 0;
+			}
+		}
+	}
+
+	vector<char> path;
+	node* start = new node();
+	start->contains = map[S_row][S_col];
+	start->row = S_row;
+	start->col = S_col;
+	record[S_row][S_col][4] = 1;
+	start->path_cost = 1;
+	start->path_length = 0;
+	start->health = 5;
+
+	start->distance = wall(map, start, G_row, G_col, map_row, map_col);
+	cost[S_row][S_col][4]=start->distance+start->path_cost;
+	vector<node*> frontier;
+	find_frontier_wall(record, cost, map, start, frontier, map_row, map_col,
+			G_row, G_col);
+
+	bool stop = false;
+	node* now = start;
+
+	while (stop == false) {
+
+
+		if (frontier.empty()) {
+			cout << "OH NO!!!!!!!!!!!!!!!!!";
+			vector<char> a;
+			return a;
+		}
+		if (now->contains == 'G') {
+			cout << '\n';
+			cout << "Wall: " << endl;
+			G_row = now->row;
+			G_col = now->col;
+			printInfo(now, num_nodes);
+
+			for (int i = 0; i < map_row; ++i) {
+				for (int j = 0; j < map_col; j++) {
+					delete[] record[i][j];
+				}
+				delete[] record[i];
+			}
+
+			delete[] record;
+			for (int i = 0; i < map_row; ++i) {
+				for (int j = 0; j < map_col; j++) {
+					delete[] cost[i][j];
+				}
+				delete[] cost[i];
+			}
+			delete[] cost;
+			return now->path;
+
+		}
+			int min = minimum_a_distance(frontier);
+			now = frontier[min];
+
+			frontier.erase(frontier.begin() + min);
+			find_frontier_wall(record, cost, map, now, frontier, map_row,
+					map_col, G_row, G_col);
+			num_nodes++;
+		}
+
+		return path;
+	}
 
 int main() {
 
@@ -790,14 +2227,14 @@ int main() {
 	int num_nodes;
 	num_nodes = 1;
 	//row starting from 0 and column starting from 0
-	ifstream ifs("test_map2.txt", std::ifstream::in);
+	ifstream ifs("test_map3.txt", std::ifstream::in);
 
 	ifs >> rows;
 	ifs >> columns;
-	columns = columns + 1; //one extra column for the char newline
+	columns = columns + 1;//one extra column for the char newline
 	char** map = new char*[rows];
 	for (int i = 0; i < rows; ++i)
-		map[i] = new char[columns];
+	map[i] = new char[columns];
 
 	for (int i = 0; i < rows; i++) {
 		for (int j = 0; j < columns; j++) {
@@ -833,6 +2270,21 @@ int main() {
 	vector<char> path_greedy = greedy(map, num_nodes, S_row, S_col, rows,
 			columns, G_row, G_col);
 
+	num_nodes = 1;
+	vector<char> path_a = a_search(map, num_nodes, S_row, S_col, rows, columns,
+			G_row, G_col);
+
+	num_nodes = 1;
+	vector<char> path_a_1 = a_search_1(map, num_nodes, S_row, S_col, rows,
+			columns, G_row, G_col);
+	/**********2C 3************/
+	num_nodes = 1;
+	vector<char> path_a_3 = a_search_3(map, num_nodes, S_row, S_col, rows,
+			columns, G_row, G_col);
+
+	num_nodes = 1;
+	vector<char> path_a_4 = a_search_4(map, num_nodes, S_row, S_col, rows,
+	columns, G_row, G_col);
 	/******delete the dynamic variables******/
 	for (int i = 0; i < rows; ++i) {
 		delete[] map[i];
